@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class TransactionForm extends StatefulWidget {
   final void Function(String, double) onSubmit;
@@ -10,18 +11,31 @@ class TransactionForm extends StatefulWidget {
 }
 
 class _TransactionFormState extends State<TransactionForm> {
-  final titleController = TextEditingController();
-
-  final valueController = TextEditingController();
-
+  final _titleController = TextEditingController();
+  final _valueController = TextEditingController();
+  DateTime? _selectedDate;
   _submitForm() {
-    final title = titleController.text;
-    final value = double.tryParse(valueController.text) ?? 0.0;
-    if(title.isEmpty || value <= 0) {
-      return;
-    }
+    final title = _titleController.text;
+    final value = double.tryParse(_valueController.text) ?? 0.0;
+
     widget.onSubmit(title, value);
-            
+  }
+
+  _showDatePicker() {
+    showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2019),
+            lastDate: DateTime.now(),
+            helpText: 'Selecione a data')
+        .then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    });
   }
 
   @override
@@ -33,12 +47,12 @@ class _TransactionFormState extends State<TransactionForm> {
         child: Column(
           children: [
             TextField(
-              controller: titleController,
-              decoration: const InputDecoration(
+              controller: _titleController,
+              decoration: InputDecoration(
                 labelText: 'Título',
-                labelStyle: TextStyle(color: Colors.purple),
+                labelStyle: TextStyle(color: Theme.of(context).primaryColor),
                 hintText: 'Insira o título',
-                hintStyle: TextStyle(
+                hintStyle: const TextStyle(
                   color: Colors.grey,
                   fontSize: 16,
                 ),
@@ -46,31 +60,64 @@ class _TransactionFormState extends State<TransactionForm> {
               onSubmitted: (_) => _submitForm(),
             ),
             TextField(
-              controller: valueController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              controller: _valueController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               onSubmitted: (_) => _submitForm(),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Valor (R\$)',
                 labelStyle: TextStyle(
-                  color: Colors.purple,
+                  color: Theme.of(context).primaryColor,
                 ),
                 hintText: 'Insira o valor em R\$',
-                hintStyle: TextStyle(color: Colors.grey, fontSize: 16),
+                hintStyle: const TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+            ),
+            SizedBox(
+              height: 70,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _selectedDate == null
+                          ? "Nenhhuma data"
+                          : 'Data: ${DateFormat('dd/MM/y').format(_selectedDate!)}',
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _showDatePicker,
+                    child: Text(
+                      _selectedDate == null ? "Selecionar data" : "Alterar data",
+                      style: const TextStyle(
+                        color: Colors.purple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                    onPressed: _submitForm,
-                    child: const Text(
-                      'Nova Transação',
-                      style: TextStyle(
-                        color: Colors.purple,
-                      ),
-                    )),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  style: const ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(Colors.purple),
+                      shape: MaterialStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.all(Radius.circular((10))),
+                        ),
+                      )),
+                  child: const Text(
+                    'Nova Transação',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),

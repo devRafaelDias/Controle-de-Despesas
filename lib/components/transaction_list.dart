@@ -11,48 +11,62 @@ class TransactionList extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 440,
-      child: ListView.builder(
-        itemCount: transaction.length,
-        itemBuilder: (ctx, index) {
-          final tr = transaction[index];
-          return Card(
-            child: Row(
+      child: transaction.isEmpty
+          ? Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.purple, width: 2),
-                      borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.all(10),
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  child: Text(
-                    'R\$ ${tr.value.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: Colors.purple,
-                    ),
+                const Text(
+                  'Nenhuma Transação Cadastrada',
+                  style: TextStyle(
+                    fontSize: 20,
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Image.asset(
+                    'assets/images/wall.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            )
+          : ListView.builder(
+              itemCount: transaction.length,
+              itemBuilder: (ctx, index) {
+                final tr = transaction[index];
+                return Card(
+                color: const Color.fromARGB(255, 253, 239, 255),                 
+                  shadowColor: Colors.deepPurple,
+                  elevation: 3,
+                  margin: const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 6),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.purple,
+                      radius: 30,
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.0),
+                        child: FittedBox(
+                          child: Text('R\$${tr.value}'),
+                        ),
+                      ),
+                    ),
+                    title: Text(
                       tr.title,
                       style: const TextStyle(
-                          fontSize: 16, fontWeight: FontWeight.bold),
+                        fontFamily: 'Gotham',
+                        fontSize: 18,
+                        color: Colors.black,
+                      ),
                     ),
-                    Text(
+                    subtitle: Text(
                       DateFormat('d MMM y').format(tr.date),
-                      style: const TextStyle(color: Colors.grey),
+                      style: const TextStyle(
+                        color: Colors.grey
+                      ),
                     ),
-                  ],
-                )
-              ],
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
