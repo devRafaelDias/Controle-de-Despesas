@@ -10,7 +10,6 @@ main() => runApp(const ExpensesApp());
 
 class ExpensesApp extends StatelessWidget {
   const ExpensesApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -35,26 +34,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Transaction> _transactions = [
-    Transaction(
-      id: 't1',
-      title: 'Novo Tênis',
-      value: 310.76,
-      date: DateTime.now().subtract(Duration(days: 3)),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Conta de luz',
-      value: 300.00,
-      date: DateTime.now().subtract(Duration(days: 4)),
-    ),
-    Transaction(
-      id: 't0',
-      title: 'Conta Antiga',
-      value: 300.00,
-      date: DateTime.now().subtract(Duration(days: 33)),
-    ),
-  ];
+  bool _showChart = false;
+  final List<Transaction> _transactions = [];
   List<Transaction> get _recentTransactions {
     return _transactions.where((tr) {
       return tr.date.isAfter(
@@ -63,18 +44,24 @@ class _MyHomePageState extends State<MyHomePage> {
     }).toList();
   }
 
-  _addTransaction(String title, double value) {
+  _addTransaction(String title, double value, DateTime date) {
     final newTransaction = Transaction(
       id: Random().nextDouble().toString(),
       title: title,
       value: value,
-      date: DateTime.now(),
+      date: date,
     );
 
     setState(() {
       _transactions.add(newTransaction);
     });
     Navigator.of(context).pop();
+  }
+
+  _removeTransaction(String id) {
+    setState(() {
+      _transactions.removeWhere((tr) => tr.id == id);
+    });
   }
 
   _openTransactionFormModal(BuildContext context) {
@@ -89,25 +76,53 @@ class _MyHomePageState extends State<MyHomePage> {
   // ignore: unused_field
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        title: const Text(
-          'Despesas Pessoais',
-          style: TextStyle(fontFamily: 'Mont'),
+    final mediaQuery = MediaQuery.of(context);
+    bool isLandScape = mediaQuery.orientation == Orientation.landscape;
+    final appBar = AppBar(
+      backgroundColor: Theme.of(context).primaryColor,
+      title: Text(
+        'Despesas Pessoais',
+        style: TextStyle(
+          fontFamily: 'Mont',
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 25,
         ),
-        actions: [
-          IconButton(
-              onPressed: () => _openTransactionFormModal(context),
-              icon: const Icon(Icons.add)),
-        ],
       ),
+      actions: [
+        IconButton(
+          onPressed: () {
+            setState(() {
+              _showChart = !_showChart;
+            });
+          },
+          icon: Icon(_showChart ? Icons.list : Icons.show_chart),
+          color: Colors.white,
+        ),
+        IconButton(
+          onPressed: () => _openTransactionFormModal(context),
+          icon: const Icon(Icons.add),
+          color: Colors.white,
+        ),
+      ],
+    );
+    final availableHeight = MediaQuery.of(context).size.height -
+        appBar.preferredSize.height -
+        mediaQuery.padding.top;
+    return Scaffold(
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Chart(_recentTransactions),
-            TransactionList(_transactions),
+            if (_showChart || !isLandScape)
+              SizedBox(
+                  height: availableHeight * (isLandScape ? 0.7 : 0.3),
+                  child: Chart(_recentTransactions)),
+            if (!_showChart || !isLandScape)
+              SizedBox(
+                  height: availableHeight * (isLandScape ? 0.7 : 1),
+                  child: TransactionList(_transactions, _removeTransaction))
           ],
         ),
       ),
